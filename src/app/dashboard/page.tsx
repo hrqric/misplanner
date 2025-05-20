@@ -34,7 +34,9 @@ export default function DashboardPage() {
   const [tempoHoje, setTempoHoje] = useState(0);
   const [materiaAtual, setMateriaAtual] = useState<string | null>(null);
   const [meta, setMeta] = useState<number | null>(null);
-
+  const [meta_sema, setMetaSemanal] = useState<number | null>(null);
+  const [materiaAtualID, setMateriaAtualId] = useState<number | null>(null);
+  
    useEffect(() => {
     async function fetchDados() {
       const hoje = dayjs().format("YYYY-MM-DD");
@@ -59,32 +61,32 @@ export default function DashboardPage() {
       setTempoHoje(totalMinutos);
 
       // 3. Buscar matéria em foco (última ativa)
-      const ultima = (apontamentos || [])
-        .filter(a => a.apont_ativo)
-        .sort((a, b) => (dayjs(b.apont_hora_inicio).unix() - dayjs(a.apont_hora_inicio).unix()))[0];
+      const {data: materia, error: materia_error} = await supabase
+      .from('dbo_materias')
+      .select('materia_nome, id')
+      .eq('focus', 1)
+      .single();
+      setMateriaAtual(materia?.materia_nome || "")
+      setMateriaAtualId(materia?.id || null)
 
-      if (ultima) {
-        const { data: materia } = await supabase
-          .from("dbo_materias")
-          .select("materia_nome")
-          .eq("id", ultima.a_materia_foreign_key)
-          .single();
-        setMateriaAtual(materia?.materia_nome || null);
+      //4. Buscar a meta do foco
+      const {data: meta_materia, error: meta_error} = await supabase
+      .from('dbo_metas')
+      .select('meta_diaria')
+      .eq('m_materia_foreign_key', materia?.id)
+      .single()
+      setMeta(meta_materia?.meta_diaria || null)
 
-        // 4. Buscar meta dessa matéria
-        const { data: metaData } = await supabase
-          .from("dbo_metas")
-          .select("meta_diaria")
-          .eq("materiaFK", ultima.materiaFK)
-          .single();
-        setMeta(metaData?.meta_diaria || null);
-      }
+     //5. Setar meta semanal
+     const meta_semanal = meta_materia?.meta_diaria*7 
+     setMetaSemanal(meta_semanal)
     }
+
 
     fetchDados();
   }, []);
 
-  const progresso = meta ? Math.min((tempoHoje / meta) * 100, 100) : 0;
+  const progresso = (meta ? Math.min((tempoHoje / meta) * 100, 100) : 0) || 1;
 
 
   return (
@@ -116,7 +118,7 @@ export default function DashboardPage() {
           {/* meta semanal */}
           <div className="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition">
             <h2 className="text-xl font-semibold text-[#256D1B]">Meta semanal</h2>
-            <p className="text-3xl font-bold mt-4 text-gray-800">{meta} * 7</p>
+            <p className="text-3xl font-bold mt-4 text-gray-800">{meta_sema}</p>
             <p className="text-sm text-gray-600 mt-2">Falta 40% para a meta semanal ser alcançada</p>
           </div>
 

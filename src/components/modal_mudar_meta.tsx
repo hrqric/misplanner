@@ -1,8 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { QueryResult, QueryData, QueryError } from "@supabase/supabase-js";
 import { supabase } from "@/supabaseClient";
 import { useUser } from "@clerk/nextjs";
+import { json } from "node:stream/consumers";
+
+import DashboardPage from "@/app/dashboard/page";
 
 type Meta = {
   materiaFK: number;
@@ -16,45 +20,58 @@ type Materia = {
 
 export default function MudarMeta({ materiaFK }: { materiaFK: number }) {
 
-  console.log({materiaFK})
+  //console.log({materiaFK})
   const [modalAberto, setModalAberto] = useState(false);
   const [novaMeta, setNovaMeta] = useState<number>(0);
   const [metaAtual, setMetaAtual] = useState<number | null>(null);
   const [nomeMateria, setNomeMateria] = useState<string>("");
 
   useEffect(() => {
-    async function fetchMeta() {
-      // Pega a meta atual
-      const { data: metaData } = await supabase
-        .from("dbo_metas")
-        .select("meta_diaria")
-        .eq("m_materia_foreign_key", materiaFK)
-        .single();
-      setMetaAtual(metaData?.meta_diaria || null);
-
-      // Nome da matéria
-      const { data: materia } = await supabase
-        .from("dbo_materias")
-        .select("materia_nome")
-        .eq("id", materiaFK)
-        .single();
-      setNomeMateria(materia?.materia_nome || "");
+    async function fetchdata() {
+      //getMeta 
+      const {data: meta, error: erro_meta} = await supabase
+      .from('dbo_metas')
+      .select('meta_diaria')
+      .eq('m_materia_foreign_key',materiaFK)
+      .single();
+      console.log(meta)
+      setMetaAtual(meta?.meta_diaria || null)
+      
+      const {data: materia, error: erro_materia} = await supabase
+      .from('dbo_materias')
+      .select('materia_nome')
+      .eq('id', materiaFK)
+      .single();
+      console.log(materia)
+      setNomeMateria(materia?.materia_nome || "")
     }
+    
 
     if (modalAberto) {
-      fetchMeta();
+      fetchdata();
     }
   }, [modalAberto, materiaFK]);
 
   async function salvarMeta() {
-    await supabase
-      .from("dbo_metas")
-      .upsert({ materiaFK, meta_diaria: novaMeta }, { onConflict: "m_materia_foreign_key" });
+  const { error, data } = await supabase
+    .from("dbo_metas")
+    .upsert(
+      { m_materia_foreign_key: materiaFK, meta_diaria: novaMeta },
+      { onConflict: "m_materia_foreign_key" }
+    )
+    .select();
 
-    setMetaAtual(novaMeta);
-    setModalAberto(false);
+  if (error) {
+    console.error("Erro ao salvar meta:", error.message);
+    alert("Erro ao salvar meta: " + error.message);
+    return;
   }
 
+  console.log("Meta atualizada com sucesso:", data);
+  setMetaAtual(novaMeta);
+  setModalAberto(false);
+  
+}
   const metaSemanal = novaMeta * 7;
 
   return (
