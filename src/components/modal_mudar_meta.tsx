@@ -6,8 +6,6 @@ import { supabase } from "@/supabaseClient";
 import { useUser } from "@clerk/nextjs";
 import { json } from "node:stream/consumers";
 
-import DashboardPage from "@/app/dashboard/page";
-
 type Meta = {
   materiaFK: number;
   meta_diaria: number;
@@ -52,6 +50,10 @@ export default function MudarMeta({ materiaFK }: { materiaFK: number }) {
     }
   }, [modalAberto, materiaFK]);
 
+  function refreshPage(){
+    window.location.reload()
+  }
+
   async function salvarMeta() {
   const { error, data } = await supabase
     .from("dbo_metas")
@@ -70,6 +72,7 @@ export default function MudarMeta({ materiaFK }: { materiaFK: number }) {
   console.log("Meta atualizada com sucesso:", data);
   setMetaAtual(novaMeta);
   setModalAberto(false);
+  refreshPage()
   
 }
   const metaSemanal = novaMeta * 7;

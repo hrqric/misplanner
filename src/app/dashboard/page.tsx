@@ -1,13 +1,13 @@
 "use client";
 
 import { SignedIn, SignedOut, SignInButton, useUser } from "@clerk/nextjs";
-import Link from "next/link";
 import { supabase } from "@/supabaseClient";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration"
 
-import MudarMeta from "@/components/modal_mudar_meta";
+import Header from "./header";
+import Dashboard from "@/components/dashboardmain";
 
 dayjs.extend(duration);
 
@@ -32,9 +32,9 @@ type Meta = {
 export default function DashboardPage() {
   const { user } = useUser();
   const [tempoHoje, setTempoHoje] = useState(0);
-  const [materiaAtual, setMateriaAtual] = useState<string | null>(null);
-  const [meta, setMeta] = useState<number | null>(null);
-  const [meta_sema, setMetaSemanal] = useState<number | null>(null);
+  const [materiaAtual, setMateriaAtual] = useState<string | "">("");
+  const [meta, setMeta] = useState<number | 0>(0);
+  const [meta_sema, setMetaSemanal] = useState<number | 0>(0);
   const [materiaAtualID, setMateriaAtualId] = useState<number | null>(null);
   
    useEffect(() => {
@@ -89,78 +89,17 @@ export default function DashboardPage() {
   const progresso = (meta ? Math.min((tempoHoje / meta) * 100, 100) : 0) || 1;
 
 
-  return (
-    <div className="min-h-screen bg-[#FFFAFF] p-[40]">
+  return (  
+    <div className="min-h-screen bg-[#FFFAFF] ">
       {/* Usuário autenticado */}
       <SignedIn>
-        <header className="mb-10">
+        <Header></Header>
+      <div className="mt-10 ml-12">
           <h1 className="text-4xl font-bold text-[#256D1B]">Olá, {user?.firstName || "estudante"} 👋</h1>
           <p className="text-lg text-[#191102] mt-2">Aqui está seu resumo de estudos:</p>
-        </header>
+      </div>
+        <Dashboard materiaAtual={materiaAtual} meta={meta} meta_sema={meta_sema} tempoHoje={tempoHoje} progresso={progresso}></Dashboard>
 
-        <main className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Matéria em foco */}
-          <div className="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition">
-            <h2 className="text-xl font-semibold text-[#256D1B]">Matéria em foco</h2>
-            <p className="text-2xl font-bold mt-4 text-gray-800">{materiaAtual || "Nenhuma ativa no momento"}</p>
-            <p className="text-sm text-gray-500 mt-1">Estude mais 30min para bater sua meta de hoje.</p>
-          </div>
-
-
-
-          {/* meta diária */}
-          <div className="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition">
-            <h2 className="text-xl font-semibold text-[#256D1B]">Meta diária</h2>
-            <p className="text-3xl font-bold mt-4 text-gray-800">{meta}</p>
-            <p className="text-sm text-gray-500 mt-1">Bons estudos! 🎉</p>
-          </div>
-
-          {/* meta semanal */}
-          <div className="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition">
-            <h2 className="text-xl font-semibold text-[#256D1B]">Meta semanal</h2>
-            <p className="text-3xl font-bold mt-4 text-gray-800">{meta_sema}</p>
-            <p className="text-sm text-gray-600 mt-2">Falta 40% para a meta semanal ser alcançada</p>
-          </div>
-
-                    {/* Tempo estudado hoje */}
-          <div className="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition">
-            <h2 className="text-xl font-semibold text-[#256D1B]">Tempo estudado hoje</h2>
-            <p className="text-3xl font-bold mt-4 text-gray-800">{tempoHoje}</p>
-            <p className="text-sm text-gray-500 mt-1">Boa consistência! 🎉</p>
-          </div>
-
-          {/* Progresso da semana */}
-          <div className="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition">
-            <h2 className="text-xl font-semibold text-[#256D1B]">Progresso da semana</h2>
-            <div className="w-full bg-gray-200 rounded-full h-4 mt-4">
-              <div className="bg-[#256D1B] h-4 rounded-full" style={{ width: `${progresso}%` }}></div>
-            </div>
-            <p className="text-sm text-gray-600 mt-2">60% da meta semanal alcançada</p>
-          </div>
-
-        </main>
-
-        {/* Ações */}
-        <section className="mt-12">
-          <Link href="/estudos">
-            <button className="px-6 py-3 bg-[#256D1B] text-white font-semibold rounded-xl shadow hover:bg-[#3FD62B] transition cursor-pointer mr-[45]">
-              Iniciar estudo agora
-            </button>
-          </Link>
-
-            {/* <button className="px-6 py-3 bg-[#256D1B] text-white font-semibold rounded-xl shadow hover:bg-[#3FD62B] transition cursor-pointer">
-              Mudar metas
-            </button> */}
-
-            <MudarMeta materiaFK={1}>
-
-            </MudarMeta>
-
-            <button className="px-6 py-3 bg-[#D62246] text-white font-semibold rounded-xl shadow hover:bg-[#89031E] transition cursor-pointer ml-[45]">
-              Parar estudo
-            </button>
-
-        </section>
       </SignedIn>
 
       {/* Usuário não autenticado */}
