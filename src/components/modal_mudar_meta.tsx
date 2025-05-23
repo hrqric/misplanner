@@ -81,7 +81,7 @@ export default function MudarMeta({ materiaFK }: { materiaFK: number }) {
     <>
       <button
         onClick={() => setModalAberto(true)}
-        className="mt-4 px-6 py-2 bg-[#005791] text-white font-semibold rounded-xl shadow hover:bg-[#003f66] transition"
+        className="mt-4 px-6 py-2 bg-[#005791] text-white font-semibold rounded-xl shadow hover:bg-[#003f66] transition cursor-pointer"
       >
         Mudar Metas
       </button>

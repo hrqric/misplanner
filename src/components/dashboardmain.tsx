@@ -1,5 +1,7 @@
 import Link from "next/link";
 import MudarMeta from "@/components/modal_mudar_meta";
+import { useEffect, useState } from "react";
+import { supabase } from "@/supabaseClient";
 
 type infos = {
     materiaAtual: string
@@ -7,8 +9,25 @@ type infos = {
 }
 
 
+
 export default function Dashboard({materiaAtual, meta, meta_sema, tempoHoje, progresso}: {materiaAtual: string, meta: number, meta_sema: number, tempoHoje: number, progresso: number}){
-    return(
+  const [materiaID, setMateriaId] = useState<number>(0);
+
+  useEffect(() => {
+    async function fetchID(){
+      const {data: materia, error: erro_materia_id} = await supabase
+      .from('dbo_materias')
+      .select('id')
+      .eq('materia_nome', materiaAtual)
+      .single()
+      console.log(materia?.id)
+      setMateriaId(materia?.id)
+    }
+
+  fetchID()
+  })
+
+  return(
         <div className="min-h-screen bg-[#FFFAFF] p-[40]">
         <main className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Matéria em foco */}
@@ -41,6 +60,14 @@ export default function Dashboard({materiaAtual, meta, meta_sema, tempoHoje, pro
             <p className="text-sm text-gray-500 mt-1">Boa consistência! 🎉</p>
           </div>
 
+                              {/* Tempo estudado hoje */}
+          <div className="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition">
+            <h2 className="text-xl font-semibold text-[#256D1B]">Tempo estudado na semana</h2>
+            <p className="text-3xl font-bold mt-4 text-gray-800">{tempoHoje}</p>
+            <p className="text-sm text-gray-500 mt-1">Boa consistência! 🎉</p>
+          </div>
+
+
           {/* Progresso da semana */}
           <div className="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition">
             <h2 className="text-xl font-semibold text-[#256D1B]">Progresso da semana</h2>
@@ -64,7 +91,7 @@ export default function Dashboard({materiaAtual, meta, meta_sema, tempoHoje, pro
               Mudar metas
             </button> */}
 
-            <MudarMeta materiaFK={1}>
+            <MudarMeta materiaFK={materiaID}>
 
             </MudarMeta>
 
